@@ -2,9 +2,13 @@ use std::sync::{Arc, Mutex};
 use crate::context::NULL_VALUE;
 use crate::archive::client::context::Context;
 use crate::aeron::Aeron;
+use crate::agrona::concurrent::system_nano_clock::NanoClock;
 use crate::archive::client::archive_proxy::ArchiveProxy;
+use crate::archive::client::control_response_poller::ControlResponsePoller;
+use crate::archive::client::recording_descriptor_poller::RecordingDescriptorPoller;
 use crate::client_conductor::ClientConductor;
 use crate::concurrent::agent_invoker::AgentInvoker;
+use crate::concurrent::strategies::YieldingIdleStrategy;
 
 
 const NULL_TIMESTAMP: i64 = NULL_VALUE;
@@ -22,7 +26,9 @@ pub struct AeronArchive {
     context: Context,
     aeron: Arc<Mutex<Aeron>>,
     archive_proxy: ArchiveProxy,
-    idle_strategy: Box<dyn IdleStrategy>,
+    // IC: Set to Yielding only for now
+    idle_strategy: YieldingIdleStrategy,
+    // IC: for polling control response channel
     control_response_poller: ControlResponsePoller,
     lock: Mutex<()>,
     nano_clock: NanoClock,

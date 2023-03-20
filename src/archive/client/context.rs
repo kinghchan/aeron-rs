@@ -80,8 +80,3 @@ impl Context {
 
     }
 }
-
-// default configuration for Aeron Archive
-pub struct Configuration {
-
-}

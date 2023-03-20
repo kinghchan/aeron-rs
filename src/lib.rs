@@ -42,4 +42,5 @@ pub mod subscription;
 pub mod utils;
 
 pub mod archive;
-// pub mod agrona;
+pub mod agrona;
+mod controlled_fragment_assembler;

@@ -1,8 +1,8 @@
-pub struct SystemNanoClock;
+pub struct NanoClock;
 
-impl SystemNanoClock {
+impl NanoClock {
     pub fn instance() -> Self {
-        SystemNanoClock
+        NanoClock
     }
 
     pub fn nano_time(&self) -> u64 {
