@@ -41,5 +41,5 @@ pub mod publication;
 pub mod subscription;
 pub mod utils;
 
-// pub mod archive;
+pub mod archive;
 // pub mod agrona;
