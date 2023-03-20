@@ -1,5 +1,8 @@
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::Ordering;
 use std::time::Duration;
+use crate::aeron::Aeron;
+use crate::concurrent::logbuffer::term_reader::ErrorHandler;
 
 #[derive(Clone)]
 pub struct Context {
@@ -17,10 +20,56 @@ pub struct Context {
     idle_strategy: Box<dyn IdleStrategy>,
     lock: Arc<Mutex<()>>,
     aeron_directory_name: String,
-    aeron: Aeron,
+    aeron: Option<Aeron>,
     error_handler: Box<dyn ErrorHandler>,
     credentials_supplier: Box<dyn CredentialsSupplier>,
     recording_signal_consumer: Box<dyn RecordingSignalConsumer>,
-    agent_invoker: AgentInvoker,
+    // agent_invoker: AgentInvoker, // only 1 writer, the setter, and latter has no usages
     owns_aeron_client: bool,
+}
+
+impl Context {
+    // ...
+    pub fn conclude(&mut self) {
+        if 0 != self.is_concluded.fetch_add(1, Ordering::SeqCst) {
+            panic!("ConcurrentConcludeException");
+        }
+
+        if self.control_request_channel.is_none() {
+            panic!("AeronArchive.Context.controlRequestChannel must be set");
+        }
+
+        if self.control_response_channel.is_none() {
+            panic!("AeronArchive.Context.controlResponseChannel must be set");
+        }
+
+        if self.aeron.is_none() {
+            if let aeron = Aeron::connect_ctx(
+                AeronContext::new()
+                    .aeron_directory_name(self.aeron_directory_name.clone())
+                    .error_handler(self.error_handler.clone()),
+            ) {
+                self.aeron = ;
+            }
+            self.owns_aeron_client = true;
+        }
+
+        if self.idle_strategy.is_none() {
+            self.idle_strategy = Some(BackoffIdleStrategy::new(
+                IDLE_MAX_SPINS, IDLE_MAX_YIELDS, IDLE_MIN_PARK_NS, IDLE_MAX_PARK_NS,
+            ));
+        }
+
+        if self.credentials_supplier.is_none() {
+            self.credentials_supplier = Some(NullCredentialsSupplier::new());
+        }
+
+        if self.lock.is_none() {
+            self.lock = Some(Arc::new(Mutex::new(())));
+        }
+
+        self.control_request_channel = apply_default_params(self.control_request_channel.clone());
+        self.control_response_channel = apply_default_params(self.control_response_channel.clone());
+    }
+    // ...
 }
