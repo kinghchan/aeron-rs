@@ -6,9 +6,11 @@ use crate::concurrent::logbuffer::term_reader::ErrorHandler;
 use crate::concurrent::strategies::YieldingIdleStrategy;
 
 // IC: Context is not Cloneable because it may contain an Aeron instance.
+// I don't know why Java allows it, Aeron doesn't have clone in Java. Unless it's just a shallow clone. <- bookmark.
 // #[derive(Clone)]
 pub struct Context {
-    is_concluded: Arc<Mutex<bool>>,
+    // IC: No guard - see below
+    is_concluded: bool,
     message_timeout_ns: Duration,
     recording_events_channel: String,
     recording_events_stream_id: i32,
@@ -31,49 +33,55 @@ pub struct Context {
     // agent_invoker: AgentInvoker, // only 1 writer, the setter, and latter has no usages
     owns_aeron_client: bool,
 }
-//
-// impl Context {
-//     // ...
-//     pub fn conclude(&mut self) {
-//         if 0 != self.is_concluded.fetch_add(1, Ordering::SeqCst) {
-//             panic!("ConcurrentConcludeException");
-//         }
-//
-//         if self.control_request_channel.is_none() {
-//             panic!("AeronArchive.Context.controlRequestChannel must be set");
-//         }
-//
-//         if self.control_response_channel.is_none() {
-//             panic!("AeronArchive.Context.controlResponseChannel must be set");
-//         }
-//
-//         if self.aeron.is_none() {
-//             if let aeron = Aeron::connect_ctx(
-//                 AeronContext::new()
-//                     .aeron_directory_name(self.aeron_directory_name.clone())
-//                     .error_handler(self.error_handler.clone()),
-//             ) {
-//                 self.aeron = ;
-//             }
-//             self.owns_aeron_client = true;
-//         }
-//
-//         if self.idle_strategy.is_none() {
-//             self.idle_strategy = Some(BackoffIdleStrategy::new(
-//                 IDLE_MAX_SPINS, IDLE_MAX_YIELDS, IDLE_MIN_PARK_NS, IDLE_MAX_PARK_NS,
-//             ));
-//         }
-//
-//         if self.credentials_supplier.is_none() {
-//             self.credentials_supplier = Some(NullCredentialsSupplier::new());
-//         }
-//
-//         if self.lock.is_none() {
-//             self.lock = Some(Arc::new(Mutex::new(())));
-//         }
-//
-//         self.control_request_channel = apply_default_params(self.control_request_channel.clone());
-//         self.control_response_channel = apply_default_params(self.control_response_channel.clone());
-//     }
-//     // ...
-// }
+
+impl Context {
+    // concludes the configuration
+    pub fn conclude(&mut self) {
+        // IC: Java explicits makes this atomic in case multiple threads call it on the same context instance
+        // But we would literally never do it in rust. Gonna comment out the whole thing.
+        // if 0 != self.is_concluded.fetch_add(1, Ordering::SeqCst) {
+        //     panic!("ConcurrentConcludeException");
+        // }
+
+        if self.control_request_channel.is_none() {
+            panic!("AeronArchive.Context.controlRequestChannel must be set");
+        }
+
+        if self.control_response_channel.is_none() {
+            panic!("AeronArchive.Context.controlResponseChannel must be set");
+        }
+
+        // IC: archive client can 'own' an aeron client, or use an existing aeron client instance
+        if self.aeron.is_none() {
+            let aeron = Aeron::new(Context::new())?;
+            self.aeron = Some(aeron);
+            // when closing the archive client, also close aeron client if former owns latter
+            self.owns_aeron_client = true;
+        }
+
+        if self.idle_strategy.is_none() {
+            // IC: Java uses BackOffIdleStrategy
+            self.idle_strategy = Some(YieldingIdleStrategy::new());
+        }
+
+        // IC: No credentials support
+        // if self.credentials_supplier.is_none() {
+        //     self.credentials_supplier = Some(NullCredentialsSupplier::new());
+        // }
+
+        if self.lock.is_none() {
+            self.lock = Some(Arc::new(Mutex::new(())));
+        }
+
+        self.control_request_channel = apply_default_params(self.control_request_channel.clone());
+        self.control_response_channel = apply_default_params(self.control_response_channel.clone());
+    }
+    pub fn apply_default_params() {
+
+    }
+}
+
+// default configuration for Aeron Archive
+pub struct Configuration {
+
+}
