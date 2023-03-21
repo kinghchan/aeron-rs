@@ -5,6 +5,7 @@ use crate::aeron::Aeron;
 use crate::concurrent::logbuffer::term_reader::ErrorHandler;
 use crate::concurrent::strategies::YieldingIdleStrategy;
 use crate::archive::client::configuration::*;
+use crate::channel_uri::ChannelUri;
 use crate::utils::errors::AeronError;
 
 // IC: Context is not Cloneable because it may contain an Aeron instance.
@@ -56,6 +57,7 @@ impl Context {
             owns_aeron_client: false
         }
     }
+
     // concludes the configuration
     pub fn conclude(&mut self) -> Result<(), AeronError>{
         // IC: Java explicits makes this atomic in case multiple threads call it on the same context instance
@@ -82,7 +84,14 @@ impl Context {
         // self.control_response_channel = apply_default_params(self.control_response_channel.clone());
         Ok(())
     }
-    pub fn apply_default_params() {
 
+    pub fn apply_default_params(channel: &mut String) -> Result<(), AeronError> {
+        let parsed = ChannelUri::parse(channel)?;
+        Ok(())
     }
+}
+
+#[cfg(test)]
+mod test {
+
 }

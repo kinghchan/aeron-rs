@@ -1,23 +1,27 @@
-// use std::time::Duration;
-// use std::sync::Arc;
-// use crate::agrona::concurrent::system_nano_clock;
+use std::time::Duration;
+use std::sync::Arc;
+use crate::agrona::concurrent::system_nano_clock;
 // use crate::archive::client::aeron_archive::AeronArchive;
-// use crate::concurrent::strategies::YieldingIdleStrategy;
-// use crate::publication::Publication;
-//
-// pub const DEFAULT_RETRY_ATTEMPTS: i32 = 3;
-//
-// pub struct ArchiveProxy {
-//     connect_timeout_ns: Duration,
-//     retry_attempts: i32,
-//     retry_idle_strategy: Box<dyn IdleStrategy>,
-//     nano_clock: NanoClock,
-//     // credentials_supplier: Box<dyn CredentialsSupplier>,
-//     buffer: ExpandableArrayBuffer,
-//     publication: Publication,
-//     message_header: MessageHeaderEncoder,
-//     // Add the rest of the encoders for each message type here
-// }
+use crate::concurrent::strategies::YieldingIdleStrategy;
+use crate::publication::Publication;
+use crate::agrona::concurrent::system_nano_clock::NanoClock;
+use io_aeron_archive_codecs::MessageHeaderEncoder;
+
+pub const DEFAULT_RETRY_ATTEMPTS: i32 = 3;
+
+pub struct ArchiveProxy {
+    connect_timeout_ns: Duration,
+    retry_attempts: i32,
+    // IC: Yielding only for now
+    retry_idle_strategy: YieldingIdleStrategy, // Box<dyn IdleStrategy>,
+    nano_clock: NanoClock,
+    // credentials_supplier: Box<dyn CredentialsSupplier>,
+    // IC: so far we only have AtomicBuffer, which is a different child from MutableDirectBuffer in Java
+    // buffer: ExpandableArrayBuffer,
+    publication: Publication,
+    // message_header: MessageHeaderEncoder,
+    // Add the rest of the encoders for each message type here
+}
 //
 // impl ArchiveProxy {
 //     pub fn new(publication: Publication) -> Self {
