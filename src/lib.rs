@@ -43,4 +43,4 @@ pub mod utils;
 
 pub mod archive;
 pub mod agrona;
-mod controlled_fragment_assembler;
+// mod controlled_fragment_assembler;

@@ -285,7 +285,7 @@ const DEFAULT_RESOURCE_LINGER_MS: Moment = 5000;
  *
  * @see Context#errorHandler
  */
-fn default_error_handler(exception: AeronError) {
+pub fn default_error_handler(exception: AeronError) {
     panic!("AeronError: {:?}", exception);
 }
 
