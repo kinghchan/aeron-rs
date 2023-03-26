@@ -163,6 +163,13 @@ impl Strategy for SleepingIdleStrategy {
 
 pub struct YieldingIdleStrategy {}
 
+// IC: Archive Context is cloneable
+impl Clone for YieldingIdleStrategy {
+    fn clone(&self) -> Self {
+        self.clone()
+    }
+}
+
 impl Strategy for YieldingIdleStrategy {
     fn idle_opt(&self, work_count: i32) {
         if 0 == work_count {

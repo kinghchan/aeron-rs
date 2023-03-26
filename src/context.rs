@@ -39,7 +39,7 @@ const AGENT_NAME: &str = "client-conductor";
 /**
  * Used to represent a null value for when some value is not yet set.
  */
-pub const NULL_VALUE: i32 = -1; // TODO replace on Option
+pub const NULL_VALUE: i64 = -1; // TODO replace on Option
 
 /**
  * Function called by Aeron to deliver notification of an available image.
@@ -285,7 +285,7 @@ const DEFAULT_RESOURCE_LINGER_MS: Moment = 5000;
  *
  * @see Context#errorHandler
  */
-fn default_error_handler(exception: AeronError) {
+pub fn default_error_handler(exception: AeronError) {
     panic!("AeronError: {:?}", exception);
 }
 

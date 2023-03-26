@@ -23,6 +23,10 @@ galvanic-assert = "0.8"
 chrono = "0.4"
 memoffset = "0.6.4"
 
+# sbe crates
+io_aeron_archive_codecs = { path = "./src/archive/codecs/io_aeron_archive_codecs" }
+io_aeron_archive_codecs_mark = { path = "./src/archive/codecs/io_aeron_archive_codecs_mark" }
+
 [dev-dependencies]
 tempfile = "3.1"
 hdrhistogram = "6.0"

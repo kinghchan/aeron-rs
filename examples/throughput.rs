@@ -64,7 +64,7 @@ fn sig_int_handler() {
 #[derive(StructOpt, Clone, Debug)]
 #[structopt(name = "Aeron throughput measurement tool")]
 struct CmdOpts {
-    #[structopt(short = "p", long = "dir", default_value = "", help = "Prefix directory for aeron driver")]
+    #[structopt(short = "p", long = "dir", default_value = "/var/folders/vq/c5nwcws51mjbrdcmnzj4y1_h0000gn/T/aeron-ivan", help = "Prefix directory for aeron driver")]
     dir_prefix: String,
     #[structopt(short = "c", long = "channel", default_value = DEFAULT_CHANNEL, help = "Channel")]
     channel: String,
