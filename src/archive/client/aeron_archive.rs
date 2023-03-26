@@ -9,8 +9,8 @@
 // use crate::client_conductor::ClientConductor;
 // use crate::concurrent::agent_invoker::AgentInvoker;
 // use crate::concurrent::strategies::YieldingIdleStrategy;
-//
-//
+
+pub(crate) const MESSAGE_TIMEOUT_DEFAULT_NS: i64 = 10_000_000_000;
 // const NULL_TIMESTAMP: i64 = NULL_VALUE;
 // const NULL_POSITION: i64 = NULL_VALUE;
 // const NULL_LENGTH: i64 = NULL_VALUE;

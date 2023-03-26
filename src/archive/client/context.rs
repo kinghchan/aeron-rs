@@ -7,6 +7,7 @@ use crate::concurrent::strategies::YieldingIdleStrategy;
 use crate::archive::client::configuration::*;
 use crate::channel_uri::ChannelUri;
 use crate::utils::errors::AeronError;
+use crate::channel_uri::*;
 
 // IC: Context is not Cloneable because it may contain an Aeron instance.
 // I don't know why Java allows it, Aeron doesn't have clone in Java. Unless it's just a shallow clone. <- bookmark.
@@ -80,14 +81,30 @@ impl Context {
         //     self.credentials_supplier = Some(NullCredentialsSupplier::new());
         // }
 
-        // self.control_request_channel = apply_default_params(self.control_request_channel.clone());
-        // self.control_response_channel = apply_default_params(self.control_response_channel.clone());
+        self.control_request_channel = self.apply_default_params(&mut self.control_request_channel.clone())?;
+        self.control_response_channel = self.apply_default_params(&mut self.control_response_channel.clone())?;
+
         Ok(())
     }
 
-    pub fn apply_default_params(channel: &mut String) -> Result<(), AeronError> {
-        let parsed = ChannelUri::parse(channel)?;
-        Ok(())
+    pub fn apply_default_params(&mut self, channel: &mut String) -> Result<String, AeronError> {
+        // IC: ChannelUri unnecessarily wraps Arc and Mutex, so you have to remove them
+        let a = ChannelUri::parse(channel)?;
+        let lock = Arc::try_unwrap(a).expect("Lock still has multiple owners");
+        let mut channel_uri = lock.into_inner().expect("Mutex cannot be locked");
+        if !channel_uri.contains_key(TERM_LENGTH_PARAM_NAME) {
+            // IC: Java has 'insert' instead of 'put'
+            channel_uri.put(TERM_LENGTH_PARAM_NAME.to_string().as_str(), self.control_term_buffer_length.to_string());
+        }
+
+        if !channel_uri.contains_key(MTU_LENGTH_PARAM_NAME) {
+            channel_uri.put(MTU_LENGTH_PARAM_NAME.to_string().as_str(), self.control_mtu_length.to_string());
+        }
+
+        if !channel_uri.contains_key(SPARSE_PARAM_NAME) {
+            channel_uri.put(SPARSE_PARAM_NAME.to_string().as_str(), self.control_term_buffer_sparse.to_string());
+        }
+        Ok(channel_uri.to_string())
     }
 }
 
