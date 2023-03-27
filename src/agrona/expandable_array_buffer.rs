@@ -8,7 +8,7 @@ pub const MAX_ARRAY_LENGTH: usize = std::isize::MAX as usize - 8;
 pub const INITIAL_CAPACITY: usize = 128;
 
 pub struct ExpandableArrayBuffer {
-    byte_array: Vec<u8>,
+    pub byte_array: Vec<u8>,
 }
 
 impl ExpandableArrayBuffer {
