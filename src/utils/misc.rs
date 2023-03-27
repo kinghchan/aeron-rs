@@ -21,7 +21,9 @@ use cache_line_size::CACHE_LINE_SIZE;
 
 use crate::utils::types::{Index, Moment};
 
-pub const CACHE_LINE_LENGTH: Index = CACHE_LINE_SIZE as Index;
+// pub const CACHE_LINE_LENGTH: Index = CACHE_LINE_SIZE as Index;
+// IC: workaround for M1 Mac
+pub const CACHE_LINE_LENGTH: Index = 64 as Index;
 
 #[inline]
 /// Get system time since start of UNIX epoch in milliseconds (ms) (10^-3 sec)

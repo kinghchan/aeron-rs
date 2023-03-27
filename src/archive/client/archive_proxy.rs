@@ -6,6 +6,7 @@ use crate::concurrent::strategies::YieldingIdleStrategy;
 use crate::publication::Publication;
 use crate::agrona::concurrent::system_nano_clock::NanoClock;
 use io_aeron_archive_codecs::*;
+use crate::agrona::expandable_array_buffer::ExpandableArrayBuffer;
 use crate::concurrent::atomic_buffer::{AlignedBuffer, AtomicBuffer};
 use crate::concurrent::atomic_counter::AtomicCounter;
 use crate::archive::client::aeron_archive::MESSAGE_TIMEOUT_DEFAULT_NS;
@@ -20,8 +21,8 @@ pub struct ArchiveProxy<'a> {
     // Box<dyn IdleStrategy>,
     nano_clock: NanoClock,
     // credentials_supplier: Box<dyn CredentialsSupplier>,
-    // IC: so far we only have AtomicBuffer, which is a different child from MutableDirectBuffer in Java
-    buffer: AtomicBuffer,
+    // IC: ExpandableArrayBuffer just a container for a Vec<u8>
+    buffer: ExpandableArrayBuffer,
     publication: Publication,
     // IC: Not sure if this works...
     message_header: MessageHeaderEncoder<WriteBuf<'a>>,
@@ -59,8 +60,8 @@ pub struct ArchiveProxy<'a> {
 impl ArchiveProxy<'_> {
     pub fn set_encoders(&mut self) {
         // Initialize the rest of the encoders for each message type here
-        let mut write_buf = WriteBuf::new(self.buffer.clone().as_mutable_slice());
-        self.start_recording_request = Some(StartRecordingRequestEncoder::default().wrap(write_buf, 0));
+        // let mut write_buf = WriteBuf::new(self.buffer.clone().as_mutable_slice());
+        // self.start_recording_request = Some(StartRecordingRequestEncoder::default().wrap(write_buf, 0));
         // write_bufself.start_recording_request2 = Some(StartRecordingRequest2Encoder::default().wrap(WriteBuf::new(self.buffer.clone().as_mutable_slice()), 0));
         // self.stop_recording_request = Some(StopRecordingRequestEncoder::default().wrap(WriteBuf::new(self.buffer.clone().as_mutable_slice()), 0));
         // self.stop_recording_subscription_request = Some(StopRecordingSubscriptionRequestEncoder::default().wrap(WriteBuf::new(self.buffer.clone().as_mutable_slice()), 0));
@@ -91,8 +92,7 @@ impl ArchiveProxy<'_> {
     }
 
     pub fn new(publication: Publication) -> Self {
-        let aligned_buffer = AlignedBuffer::with_capacity(256);
-        let mut buffer = AtomicBuffer::from_aligned(&aligned_buffer);
+        let mut buffer: Vec<u8> = Vec::with_capacity(256);
 
         Self {
             connect_timeout_ns: MESSAGE_TIMEOUT_DEFAULT_NS,
